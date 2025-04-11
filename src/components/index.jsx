@@ -148,28 +148,34 @@ const BrainTumorPrediction = () => {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm text-gray-600">Diagnosis</label>
-                    <div className={`text-xl font-semibold ${
-                      response.predicted_result === 'Positive' ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                      {response.predicted_result === 'Positive' ? 'Tumor Detected' : 'No Tumor Found'}
-                    </div>
+                    <div
+  className={`text-xl font-semibold ${
+    response.predicted_result === 'no tumor' ? 'text-green-600' : 'text-red-600'
+  }`}
+>
+  {response.predicted_result === 'no tumor' ? 'No Tumor Found' : response.predicted_result}
+</div>
+
                   </div>
 
                   <div>
                     <label className="text-sm text-gray-600">Confidence Level</label>
                     <div className="flex items-center space-x-2">
-                      <div className="w-full bg-gray-200 rounded-full h-2.5">
-                        <div
-                          className={`h-2.5 rounded-full ${
-                            response.predicted_result === 'Positive' ? 'bg-red-600' : 'bg-green-600'
-                          }`}
-                          style={{ width: `${response.confidence}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-gray-700">
-                        {Math.round(response.confidence)}%
-                      </span>
-                    </div>
+  <div className="w-full bg-gray-200 rounded-full h-2.5">
+    <div
+      className={`h-2.5 rounded-full ${
+        response.predicted_result === 'Positive' ? 'bg-red-600' : 'bg-green-600'
+      }`}
+      style={{
+        width: `${parseFloat(response.confidence)}%`
+      }}
+    />
+  </div>
+  <span className="text-sm font-medium text-gray-700">
+    {Math.round(parseFloat(response.confidence))}%
+  </span>
+</div>
+
                   </div>
 
                   <div>
