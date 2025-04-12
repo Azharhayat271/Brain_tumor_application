@@ -8,13 +8,17 @@ const BrainTumorPrediction = () => {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [segmentationLoading, setSegmentationLoading] = useState(false);
   const [response, setResponse] = useState(null);
+  const [segmentationResult, setSegmentationResult] = useState(null);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
       setPreview(URL.createObjectURL(selectedFile));
+      setResponse(null);
+      setSegmentationResult(null);
     }
   };
 
@@ -22,6 +26,35 @@ const BrainTumorPrediction = () => {
     setFile(null);
     setPreview(null);
     setResponse(null);
+    setSegmentationResult(null);
+  };
+
+  const handleSegmentation = async (file) => {
+    try {
+      setSegmentationLoading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await axios.post(
+        'https://brain-tumor-classfication-segmeatation.onrender.com/predict', 
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          responseType: 'blob' // Important for receiving image
+        }
+      );
+      
+      // Create URL from the blob response
+      const imageUrl = URL.createObjectURL(res.data);
+      setSegmentationResult(imageUrl);
+    } catch (error) {
+      console.error('Segmentation error:', error);
+      alert('Error processing segmentation!');
+    } finally {
+      setSegmentationLoading(false);
+    }
   };
 
   const handleUpload = async () => {
@@ -35,15 +68,23 @@ const BrainTumorPrediction = () => {
 
     try {
       setLoading(true);
-      const res = await axios.post('https://som11-multiclass-brain-tumor-classification.hf.space/predict', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      setResponse(res.data);
+      
+      // Run both requests in parallel
+      await Promise.all([
+        // Original classification request
+        axios.post('https://som11-multiclass-brain-tumor-classification.hf.space/predict', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }).then(res => setResponse(res.data)),
+        
+        // New segmentation request
+        handleSegmentation(file)
+      ]);
+      
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('Error uploading file!');
+      alert('Error processing image!');
     } finally {
       setLoading(false);
     }
@@ -129,63 +170,76 @@ const BrainTumorPrediction = () => {
           {/* Results Section */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             {response ? (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`p-6 rounded-xl ${
-                  response.predicted_result === 'Positive' 
-                    ? 'bg-red-50 border border-red-200'
-                    : 'bg-green-50 border border-green-200'
-                }`}
-              >
-                <h3 className="text-2xl font-semibold mb-4 flex items-center">
-                  {/* <HeartPulseIcon className={`h-8 w-8 mr-2 ${
-                    response.predicted_result === 'Positive' ? 'text-red-600' : 'text-green-600'
-                  }`} /> */}
-                  Analysis Results
-                </h3>
+              <div className="space-y-6">
+                {/* Original Results */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`p-6 rounded-xl ${
+                    response.predicted_result === 'Positive' 
+                      ? 'bg-red-50 border border-red-200'
+                      : 'bg-green-50 border border-green-200'
+                  }`}
+                >
+                  <h3 className="text-2xl font-semibold mb-4">Classification Results</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm text-gray-600">Diagnosis</label>
+                      <div className={`text-xl font-semibold ${
+                        response.predicted_result === 'no tumor' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {response.predicted_result === 'no tumor' ? 'No Tumor Found' : response.predicted_result}
+                      </div>
+                    </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-gray-600">Diagnosis</label>
-                    <div
-  className={`text-xl font-semibold ${
-    response.predicted_result === 'no tumor' ? 'text-green-600' : 'text-red-600'
-  }`}
->
-  {response.predicted_result === 'no tumor' ? 'No Tumor Found' : response.predicted_result}
-</div>
-
+                    <div>
+                      <label className="text-sm text-gray-600">Confidence Level</label>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                          <div
+                            className={`h-2.5 rounded-full ${
+                              response.predicted_result === 'Positive' ? 'bg-red-600' : 'bg-green-600'
+                            }`}
+                            style={{
+                              width: `${parseFloat(response.confidence)}%`
+                            }}
+                          />
+                        </div>
+                        <span className="text-sm font-medium text-gray-700">
+                          {Math.round(parseFloat(response.confidence))}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
+                </motion.div>
 
-                  <div>
-                    <label className="text-sm text-gray-600">Confidence Level</label>
-                    <div className="flex items-center space-x-2">
-  <div className="w-full bg-gray-200 rounded-full h-2.5">
-    <div
-      className={`h-2.5 rounded-full ${
-        response.predicted_result === 'Positive' ? 'bg-red-600' : 'bg-green-600'
-      }`}
-      style={{
-        width: `${parseFloat(response.confidence)}%`
-      }}
-    />
-  </div>
-  <span className="text-sm font-medium text-gray-700">
-    {Math.round(parseFloat(response.confidence))}%
-  </span>
-</div>
-
-                  </div>
-
-                  <div>
-                    <label className="text-sm text-gray-600">Recommendation</label>
-                    <p className="text-gray-800">
-                      {response.message || 'Consult a medical professional for further evaluation.'}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
+                {/* Segmentation Results */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-6 bg-blue-50 border border-blue-200 rounded-xl"
+                >
+                  <h3 className="text-2xl font-semibold mb-4">Tumor Localization</h3>
+                  {segmentationLoading ? (
+                    <div className="flex justify-center items-center h-48">
+                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : segmentationResult ? (
+                    <div className="mt-4">
+                      <img 
+                        src={segmentationResult} 
+                        alt="Tumor Segmentation" 
+                        className="rounded-lg object-cover w-full h-48 shadow-md"
+                      />
+                      <p className="text-sm text-gray-600 mt-2">
+                        Highlighted area shows detected tumor region
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-500">Segmentation results will appear here</p>
+                  )}
+                </motion.div>
+              </div>
             ) : (
               <div className="text-center p-8 text-gray-500">
                 <p className="text-lg">Analysis results will appear here</p>
