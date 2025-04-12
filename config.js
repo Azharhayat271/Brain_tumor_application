@@ -1,5 +1,3 @@
-// This file contains the configuration for the application.
-const exports = {
-  apiBaseUrl: 'https://som11-multiclass-brain-tumor-classification.hf.space',
-  segmentationModelBaseUrl: 'https://brain-tumor-classfication-segmeatation.onrender.com'
-};  
+// config.js - ES6 Module Syntax
+export const apiBaseUrl = 'https://som11-multiclass-brain-tumor-classification.hf.space';
+export const segmentationModelBaseUrl = 'https://brain-tumor-classfication-segmeatation.onrender.com';

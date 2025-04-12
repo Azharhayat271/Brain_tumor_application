@@ -221,7 +221,7 @@ const BrainTumorPrediction = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="p-6 bg-blue-50 border border-blue-200 rounded-xl"
                 >
-                  <h3 className="text-2xl font-semibold mb-4">Tumor Localization</h3>
+                  <h3 className="text-2xl font-semibold mb-4">Tumor Segmentation</h3>
                   {segmentationLoading ? (
                     <div className="flex justify-center items-center h-48">
                       <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
