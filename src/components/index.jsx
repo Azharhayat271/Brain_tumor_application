@@ -3,6 +3,7 @@ import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ArrowUpTrayIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { HeartPulse } from 'lucide-react';
+import { apiBaseUrl, segmentationModelBaseUrl } from '../../config';
 
 const BrainTumorPrediction = () => {
   const [file, setFile] = useState(null);
@@ -36,7 +37,7 @@ const BrainTumorPrediction = () => {
       formData.append('file', file);
       
       const res = await axios.post(
-        'https://brain-tumor-classfication-segmeatation.onrender.com/predict', 
+        `${segmentationModelBaseUrl}/predict`, 
         formData,
         {
           headers: {
@@ -72,7 +73,8 @@ const BrainTumorPrediction = () => {
       // Run both requests in parallel
       await Promise.all([
         // Original classification request
-        axios.post('https://som11-multiclass-brain-tumor-classification.hf.space/predict', formData, {
+        axios.post(
+          `${apiBaseUrl}/predict`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
