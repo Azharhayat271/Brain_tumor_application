@@ -144,7 +144,7 @@ const BrainTumorPrediction = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center space-x-3">
             <Brain className="h-8 w-8 text-indigo-600" />
-            <h1 className="text-2xl font-bold text-gray-900">NeuroScan AI</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Brain Tumor AI</h1>
           </div>
           <p className="mt-2 text-gray-600 max-w-3xl">
             Advanced MRI analysis platform for precise brain tumor detection and segmentation
